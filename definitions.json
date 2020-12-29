@@ -1,0 +1,42 @@
+[
+    {
+        "name": "usermgmt_service",
+        "active": true,
+        "proxy": {
+            "listen_path": "/usrmgmt/*",
+            "upstream": "http://localhost:8080",
+            "strip_path": true,
+            "preserve_host": false
+        },
+        "plugins": [
+            {
+                "name":"limiter",
+                "enable": true,
+                "config": {
+                    "strategy": "sliding-window",
+                    "storage": "local",
+                    "policy": "IP",
+                    "rates": ["5/1-M"]
+                }
+            }
+        ]
+    },
+    {
+        "name": "test",
+        "active": true,
+        "proxy":{
+            "listen_path": "/test/*",
+            "upstream": "http://localhost:8080"
+        },
+        "plugins": [
+            {
+                "name":"limiter",
+                "enable": false,
+                "config": {
+                    "quota": 4,
+                    "per": "m"
+                }
+            }
+        ]
+    }
+]
