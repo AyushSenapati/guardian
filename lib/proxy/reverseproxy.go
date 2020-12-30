@@ -8,17 +8,22 @@ import (
 	"strings"
 )
 
-func newRevesedProxy(definition *Definition) *httputil.ReverseProxy {
+func newRevesedProxy(definition *Definition, lb LB) *httputil.ReverseProxy {
 	return &httputil.ReverseProxy{
-		Director: createDirector(definition),
+		Director: createDirector(definition, lb),
 	}
 }
 
-func createDirector(definition *Definition) func(*http.Request) {
+func createDirector(definition *Definition, lb LB) func(*http.Request) {
 	return func(req *http.Request) {
 		orgReqURI := req.URL.Path // org req URI for logging
 
-		target, _ := url.Parse(definition.Upstream)
+		electedHost, err := lb.Elect(definition.Upstreams.Targets)
+		if err != nil {
+			log.Println("error: failed to elect an upstream")
+			return
+		}
+		target, _ := url.Parse(electedHost)
 		path := target.Path + req.URL.Path
 
 		if definition.StripPath {

@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 
 	"github.com/AyushSenapati/guardian/lib/proxy"
@@ -20,6 +21,13 @@ type Definition struct {
 	Active  bool
 	Proxy   *proxy.Definition
 	Plugins []Plugin
+}
+
+// Validate returns error if proxy/plugin validation fails
+func (d *Definition) Validate() (err error) {
+	err = d.Proxy.Validate()
+	// TODO: implement plugin validation
+	return
 }
 
 // NewDefinition returns new instance of service definition initialised with defaults
@@ -41,11 +49,24 @@ func (c *Configuration) UnmarshalJSON(b []byte) error {
 	return json.Unmarshal(b, &c.Definitions)
 }
 
+// Validate validates all the service definitions
+func (c *Configuration) Validate() error {
+	for _, def := range c.Definitions {
+		if err := def.Validate(); err != nil {
+			return fmt.Errorf("svc: %s err: %s", def.Name, err)
+		}
+	}
+	return nil
+}
+
 // ParseAndLoad parses and loads raw config
 func ParseAndLoad(rawConfig []byte) []*Definition {
 	config := Configuration{}
 	if err := json.Unmarshal(rawConfig, &config); err != nil {
 		log.Println(err)
+	}
+	if err := config.Validate(); err != nil {
+		log.Fatal(err)
 	}
 	return config.Definitions
 }

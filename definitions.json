@@ -4,7 +4,10 @@
         "active": true,
         "proxy": {
             "listen_path": "/usrmgmt/*",
-            "upstream": "http://localhost:8080",
+            "upstreams": {
+                    "strategy": "rr",
+                    "targets": ["http://localhost:8080", "http://localhost:8081"]
+            },
             "strip_path": true,
             "preserve_host": false
         },
@@ -26,7 +29,10 @@
         "active": true,
         "proxy":{
             "listen_path": "/test/*",
-            "upstream": "http://localhost:8080"
+            "upstreams": {
+                    "strategy": "rr",
+                    "targets": ["http://localhost:8080"]
+                }
         },
         "plugins": [
             {

@@ -22,7 +22,11 @@ func NewRegister(rtr router.Router) *Register {
 
 // Add registers the provided proxy definition in the register
 func (r *Register) Add(def *RouterDefinition) {
-	reverseProxy := newRevesedProxy(def.Definition)
+	lb, err := NewLB(def.Upstreams.Strategy)
+	if err != nil {
+		log.Fatalln("error:", err)
+	}
+	reverseProxy := newRevesedProxy(def.Definition, lb)
 	if reverseProxy.Transport == nil {
 		reverseProxy.Transport = http.DefaultTransport
 	}
